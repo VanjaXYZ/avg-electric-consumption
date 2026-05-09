@@ -19,14 +19,10 @@ import {
 import type { RecommendationResponse } from "../types/recommendation"
 import type { TaxGroup } from "../types/tax-group"
 import { toast } from "sonner"
-
-const HOW_IT_WORKS = [
-  "Enter your average monthly consumption in kWh and select your tax group.",
-  "We’ll calculate the total cost for each available plan, including VAT and environmental taxes.",
-  "The cheapest plan will be highlighted as recommended.",
-]
+import { useTranslation } from "react-i18next"
 
 export function RecommendationPage() {
+  const { t } = useTranslation()
   const [taxGroups, setTaxGroups] = useState<TaxGroup[]>([])
   const [isLoadingTaxGroups, setIsLoadingTaxGroups] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -53,7 +49,7 @@ export function RecommendationPage() {
         setTaxGroups(data)
       } catch (e) {
         if (ignore) return
-        setError(getApiErrorMessage(e, "Failed to load tax groups"))
+        setError(getApiErrorMessage(e, t("adminTaxGroups.loadFailFallback")))
       } finally {
         if (ignore) return
         setIsLoadingTaxGroups(false)
@@ -71,11 +67,10 @@ export function RecommendationPage() {
     <div className="grid gap-6">
       <header className="space-y-2">
         <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-          Electricity plan recommendation
+          {t("recommendation.pageTitle")}
         </h1>
         <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
-          Enter your average monthly consumption and tax group to get the most
-          cost-efficient billing plan.
+          {t("recommendation.pageSubtitle")}
         </p>
       </header>
 
@@ -92,9 +87,9 @@ export function RecommendationPage() {
           try {
             const data = await getRecommendation(values)
             setResult(data)
-            toast.success("Recommendation calculated")
+            toast.success(t("recommendation.toastSuccess"))
           } catch (e) {
-            const msg = getApiErrorMessage(e, "Recommendation failed")
+            const msg = getApiErrorMessage(e, t("recommendation.toastFailFallback"))
             setError(msg)
             toast.error(msg)
           } finally {
@@ -105,17 +100,16 @@ export function RecommendationPage() {
 
       {!isLoadingTaxGroups && taxGroups.length === 0 && !error && (
         <Alert>
-          <AlertTitle>No tax groups available</AlertTitle>
+          <AlertTitle>{t("recommendation.taxGroupsEmptyTitle")}</AlertTitle>
           <AlertDescription>
-            The system returned an empty list of tax groups. Seed at least one
-            tax group in the backend, then refresh.
+            {t("recommendation.taxGroupsEmptyDesc")}
           </AlertDescription>
         </Alert>
       )}
 
       {error && (
         <Alert variant="destructive">
-          <AlertTitle>Error</AlertTitle>
+          <AlertTitle>{t("common.error")}</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
@@ -123,12 +117,14 @@ export function RecommendationPage() {
       {!result && !error && !isSubmitting && !hasSubmitted && (
         <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle>How it works</CardTitle>
+            <CardTitle>{t("recommendation.howItWorksTitle")}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-2 text-sm text-muted-foreground">
-            {HOW_IT_WORKS.map((step, index) => (
-              <p key={index}>{`${index + 1}. ${step}`}</p>
-            ))}
+            {(t("recommendation.howItWorksSteps", { returnObjects: true }) as string[]).map(
+              (step, index) => (
+                <p key={index}>{`${index + 1}. ${step}`}</p>
+              )
+            )}
           </CardContent>
         </Card>
       )}
@@ -137,7 +133,7 @@ export function RecommendationPage() {
         <div className="grid gap-6">
           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle>Recommended plan</CardTitle>
+              <CardTitle>{t("recommendation.recommendedPlanTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2">
               <Skeleton className="h-6 w-52" />
@@ -147,7 +143,7 @@ export function RecommendationPage() {
 
           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle>All plans</CardTitle>
+              <CardTitle>{t("recommendation.allPlansTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2">
               <Skeleton className="h-4 w-full" />
@@ -163,14 +159,14 @@ export function RecommendationPage() {
         <>
           <Card className="border-primary/20 bg-gradient-to-b from-primary/5 to-background">
             <CardHeader>
-              <CardTitle>Recommended plan</CardTitle>
+              <CardTitle>{t("recommendation.recommendedPlanTitle")}</CardTitle>
             </CardHeader>
             <CardContent className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="text-lg font-semibold">
                 {result.recommended.planName}
               </div>
               <div className="rounded-lg border bg-background/60 px-3 py-2 text-sm">
-                Grand total:{" "}
+                {t("recommendation.grandTotal")}:{" "}
                 <span className="font-semibold tabular-nums">
                   {formatCurrency(result.recommended.costs.grandTotal)}
                 </span>
@@ -180,19 +176,31 @@ export function RecommendationPage() {
 
           <Card className="shadow-sm">
             <CardHeader>
-              <CardTitle>All plans</CardTitle>
+              <CardTitle>{t("recommendation.allPlansTitle")}</CardTitle>
             </CardHeader>
             <CardContent>
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Plan</TableHead>
-                    <TableHead className="text-right">Energy</TableHead>
-                    <TableHead className="text-right">Discount</TableHead>
-                    <TableHead className="text-right">After discount</TableHead>
-                    <TableHead className="text-right">Eco tax</TableHead>
-                    <TableHead className="text-right">VAT</TableHead>
-                    <TableHead className="text-right">Grand total</TableHead>
+                    <TableHead>{t("recommendation.table.plan")}</TableHead>
+                    <TableHead className="text-right">
+                      {t("recommendation.table.energy")}
+                    </TableHead>
+                    <TableHead className="text-right">
+                      {t("recommendation.table.discount")}
+                    </TableHead>
+                    <TableHead className="text-right">
+                      {t("recommendation.table.afterDiscount")}
+                    </TableHead>
+                    <TableHead className="text-right">
+                      {t("recommendation.table.ecoTax")}
+                    </TableHead>
+                    <TableHead className="text-right">
+                      {t("recommendation.table.vat")}
+                    </TableHead>
+                    <TableHead className="text-right">
+                      {t("recommendation.table.grandTotal")}
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

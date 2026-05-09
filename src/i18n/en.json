@@ -1,0 +1,133 @@
+{
+  "app": {
+    "title": "Electricity Planner",
+    "subtitle": "LANACO assignment"
+  },
+  "nav": {
+    "recommendation": "Recommendation",
+    "taxGroups": "Tax groups",
+    "plans": "Plans"
+  },
+  "common": {
+    "language": "Language",
+    "theme": "Theme",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark",
+    "error": "Error",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing…",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "create": "Create",
+    "update": "Update",
+    "edit": "Edit",
+    "delete": "Delete",
+    "actions": "Actions",
+    "discardUnsavedChangesConfirm": "Discard unsaved changes?"
+  },
+  "recommendation": {
+    "pageTitle": "Electricity plan recommendation",
+    "pageSubtitle": "Enter your average monthly consumption and tax group to get the most cost-efficient billing plan.",
+    "howItWorksTitle": "How it works",
+    "howItWorksSteps": [
+      "Enter your average monthly consumption in kWh and select your tax group.",
+      "We’ll calculate the total cost for each available plan, including VAT and environmental taxes.",
+      "The cheapest plan will be highlighted as recommended."
+    ],
+    "toastSuccess": "Recommendation calculated",
+    "toastFailFallback": "Recommendation failed",
+    "taxGroupsEmptyTitle": "No tax groups available",
+    "taxGroupsEmptyDesc": "The system returned an empty list of tax groups. Seed at least one tax group in the backend, then refresh.",
+    "recommendedPlanTitle": "Recommended plan",
+    "allPlansTitle": "All plans",
+    "grandTotal": "Grand total",
+    "table": {
+      "plan": "Plan",
+      "energy": "Energy",
+      "discount": "Discount",
+      "afterDiscount": "After discount",
+      "ecoTax": "Eco tax",
+      "vat": "VAT",
+      "grandTotal": "Grand total"
+    }
+  },
+  "recommendationForm": {
+    "title": "Get a recommendation",
+    "subtitle": "Enter your monthly consumption and tax group. We'll calculate the cheapest plan.",
+    "kwhLabel": "Average monthly consumption (kWh)",
+    "kwhPlaceholder": "e.g. 350",
+    "kwhTip": "Tip: higher consumption may unlock discounts.",
+    "taxGroupLabel": "Tax group",
+    "taxGroupPlaceholder": "Select tax group",
+    "taxGroupVatHint": "VAT {{percent}}%",
+    "taxGroupTip": "Taxes affect VAT and environmental fees.",
+    "submit": "Get recommendation",
+    "submitting": "Calculating…"
+  },
+  "adminTaxGroups": {
+    "pageTitle": "Admin · Tax groups",
+    "pageSubtitle": "Manage VAT and environmental taxes per group.",
+    "formTitleCreate": "Create tax group",
+    "formTitleEdit": "Edit tax group",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. household",
+    "vatLabel": "VAT (e.g. 0.17)",
+    "ecoTaxLabel": "Eco tax (per kWh)",
+    "helpText": "VAT and EcoTax must be non-negative.",
+    "listTitle": "All tax groups",
+    "emptyTitle": "No tax groups yet",
+    "emptyDesc": "Create your first tax group to enable cost calculations.",
+    "emptyCta": "Create first tax group",
+    "confirmDelete": "Delete this tax group?",
+    "toastCreated": "Tax group created",
+    "toastUpdated": "Tax group updated",
+    "toastDeleted": "Tax group deleted",
+    "loadFailFallback": "Failed to load tax groups",
+    "saveFailFallback": "Failed to save tax group",
+    "deleteFailFallback": "Failed to delete tax group",
+    "table": {
+      "name": "Name",
+      "vat": "VAT",
+      "ecoTax": "Eco tax",
+      "emptyRow": "No tax groups found."
+    }
+  },
+  "adminPlans": {
+    "pageTitle": "Admin · Plans",
+    "pageSubtitle": "Manage electricity billing plans and tiered pricing.",
+    "formTitleCreate": "Create plan",
+    "formTitleEdit": "Edit plan",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. Standard",
+    "discountLabel": "Discount (0–1)",
+    "discountPlaceholder": "e.g. 0.1",
+    "discountHelpText": "Discount is a fraction (e.g. 0.1 = 10%).",
+    "tiersTitle": "Pricing tiers",
+    "addTier": "Add tier",
+    "thresholdLabel": "Threshold (kWh, optional)",
+    "thresholdPlaceholder": "e.g. 300",
+    "pricePerKwhLabel": "Price per kWh",
+    "pricePerKwhPlaceholder": "e.g. 0.12",
+    "removeTier": "Remove",
+    "tiersTip": "Tip: Keep one tier with empty threshold to act as the “default” tier.",
+    "listTitle": "All plans",
+    "emptyTitle": "No plans yet",
+    "emptyDesc": "Create your first plan to enable recommendations.",
+    "emptyCta": "Create first plan",
+    "confirmDelete": "Delete this plan?",
+    "toastCreated": "Plan created",
+    "toastUpdated": "Plan updated",
+    "toastDeleted": "Plan deleted",
+    "loadFailFallback": "Failed to load plans",
+    "saveFailFallback": "Failed to save plan",
+    "deleteFailFallback": "Failed to delete plan",
+    "table": {
+      "name": "Name",
+      "discount": "Discount",
+      "tiers": "Tiers",
+      "emptyRow": "No plans found."
+    }
+  }
+}

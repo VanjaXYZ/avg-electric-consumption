@@ -25,6 +25,7 @@ import {
 import { Skeleton } from "../../components/ui/skeleton"
 import type { CreateTaxGroupRequest, TaxGroup } from "../../types/tax-group"
 import { taxGroupSchema } from "../../validation/tax-group"
+import { useTranslation } from "react-i18next"
 
 type FormState = {
   id?: number
@@ -36,6 +37,7 @@ type FormState = {
 type FieldErrors = Partial<Record<keyof Omit<FormState, "id">, string>>
 
 export function AdminTaxGroupsPage() {
+  const { t: tr } = useTranslation()
   const [items, setItems] = useState<TaxGroup[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -90,7 +92,7 @@ export function AdminTaxGroupsPage() {
       const data = await getTaxGroups()
       setItems(data)
     } catch (e) {
-      setError(getApiErrorMessage(e, "Failed to load tax groups"))
+      setError(getApiErrorMessage(e, tr("adminTaxGroups.loadFailFallback")))
     } finally {
       setIsLoading(false)
     }
@@ -120,16 +122,16 @@ export function AdminTaxGroupsPage() {
 
       if (isEdit) {
         await updateTaxGroup(form.id!, body)
-        toast.success("Tax group updated")
+        toast.success(tr("adminTaxGroups.toastUpdated"))
       } else {
         await createTaxGroup(body)
-        toast.success("Tax group created")
+        toast.success(tr("adminTaxGroups.toastCreated"))
       }
 
       resetToCreate()
       await refresh()
     } catch (e) {
-      const msg = getApiErrorMessage(e, "Failed to save tax group")
+      const msg = getApiErrorMessage(e, tr("adminTaxGroups.saveFailFallback"))
       setError(msg)
       toast.error(msg)
     } finally {
@@ -138,14 +140,14 @@ export function AdminTaxGroupsPage() {
   }
 
   async function onDelete(id: number) {
-    if (!window.confirm("Delete this tax group?")) return
+    if (!window.confirm(tr("adminTaxGroups.confirmDelete"))) return
     setError(null)
     try {
       await deleteTaxGroup(id)
-      toast.success("Tax group deleted")
+      toast.success(tr("adminTaxGroups.toastDeleted"))
       await refresh()
     } catch (e) {
-      const msg = getApiErrorMessage(e, "Failed to delete tax group")
+      const msg = getApiErrorMessage(e, tr("adminTaxGroups.deleteFailFallback"))
       setError(msg)
       toast.error(msg)
     }
@@ -154,27 +156,31 @@ export function AdminTaxGroupsPage() {
   return (
     <div className="grid gap-6">
       <header className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">Admin · Tax groups</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">{tr("adminTaxGroups.pageTitle")}</h1>
         <p className="text-sm text-muted-foreground">
-          Manage VAT and environmental taxes per group.
+          {tr("adminTaxGroups.pageSubtitle")}
         </p>
       </header>
 
       {error && (
         <Alert variant="destructive">
-          <AlertTitle>Error</AlertTitle>
+          <AlertTitle>{tr("common.error")}</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle>{isEdit ? "Edit tax group" : "Create tax group"}</CardTitle>
+          <CardTitle>
+            {isEdit
+              ? tr("adminTaxGroups.formTitleEdit")
+              : tr("adminTaxGroups.formTitleCreate")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid gap-4 sm:grid-cols-3">
             <div className="grid gap-2 sm:col-span-1">
-              <Label htmlFor="tg-name">Name</Label>
+              <Label htmlFor="tg-name">{tr("adminTaxGroups.nameLabel")}</Label>
               <Input
                 id="tg-name"
                 ref={nameRef}
@@ -183,18 +189,18 @@ export function AdminTaxGroupsPage() {
                   setFieldErrors((s) => ({ ...s, name: undefined }))
                   setForm((s) => ({ ...s, name: e.target.value }))
                 }}
-                placeholder="e.g. household"
+                placeholder={tr("adminTaxGroups.namePlaceholder")}
               />
               {fieldErrors.name && (
                 <div className="text-xs text-destructive">{fieldErrors.name}</div>
               )}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="tg-vat">VAT (e.g. 0.17)</Label>
+              <Label htmlFor="tg-vat">{tr("adminTaxGroups.vatLabel")}</Label>
               <Input
                 id="tg-vat"
                 inputMode="decimal"
-                placeholder="e.g. 0.17"
+                placeholder="0.17"
                 value={form.vat}
                 onChange={(e) => {
                   setFieldErrors((s) => ({ ...s, vat: undefined }))
@@ -206,11 +212,11 @@ export function AdminTaxGroupsPage() {
               )}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="tg-eco">Eco tax (per kWh)</Label>
+              <Label htmlFor="tg-eco">{tr("adminTaxGroups.ecoTaxLabel")}</Label>
               <Input
                 id="tg-eco"
                 inputMode="decimal"
-                placeholder="e.g. 0.01"
+                placeholder="0.01"
                 value={form.ecoTax}
                 onChange={(e) => {
                   setFieldErrors((s) => ({ ...s, ecoTax: undefined }))
@@ -228,7 +234,7 @@ export function AdminTaxGroupsPage() {
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-xs text-muted-foreground">
-              VAT and EcoTax must be non-negative.
+              {tr("adminTaxGroups.helpText")}
             </div>
             <div className="flex items-center gap-2">
               {isEdit && (
@@ -236,16 +242,20 @@ export function AdminTaxGroupsPage() {
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    if (isDirty && !window.confirm("Discard unsaved changes?")) return
+                    if (isDirty && !window.confirm(tr("common.discardUnsavedChangesConfirm"))) return
                     resetToCreate()
                   }}
                   disabled={isSaving}
                 >
-                  Cancel
+                  {tr("common.cancel")}
                 </Button>
               )}
               <Button type="button" onClick={onSave} disabled={isSaving}>
-                {isSaving ? "Saving…" : isEdit ? "Update" : "Create"}
+                {isSaving
+                  ? tr("common.saving")
+                  : isEdit
+                    ? tr("common.update")
+                    : tr("common.create")}
               </Button>
             </div>
           </div>
@@ -254,17 +264,17 @@ export function AdminTaxGroupsPage() {
 
       <Card className="shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>All tax groups</CardTitle>
+          <CardTitle>{tr("adminTaxGroups.listTitle")}</CardTitle>
           <Button type="button" variant="outline" onClick={refresh} disabled={isLoading}>
-            {isLoading ? "Refreshing…" : "Refresh"}
+            {isLoading ? tr("common.refreshing") : tr("common.refresh")}
           </Button>
         </CardHeader>
         <CardContent>
           {!isLoading && items.length === 0 && (
             <div className="mb-4 rounded-lg border bg-muted/20 p-4">
-              <div className="text-sm font-medium">No tax groups yet</div>
+              <div className="text-sm font-medium">{tr("adminTaxGroups.emptyTitle")}</div>
               <div className="mt-1 text-sm text-muted-foreground">
-                Create your first tax group to enable cost calculations.
+                {tr("adminTaxGroups.emptyDesc")}
               </div>
               <div className="mt-3">
                 <Button
@@ -274,7 +284,7 @@ export function AdminTaxGroupsPage() {
                     queueMicrotask(() => nameRef.current?.focus())
                   }}
                 >
-                  Create first tax group
+                  {tr("adminTaxGroups.emptyCta")}
                 </Button>
               </div>
             </div>
@@ -282,10 +292,10 @@ export function AdminTaxGroupsPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead className="text-right">VAT</TableHead>
-                <TableHead className="text-right">Eco tax</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{tr("adminTaxGroups.table.name")}</TableHead>
+                <TableHead className="text-right">{tr("adminTaxGroups.table.vat")}</TableHead>
+                <TableHead className="text-right">{tr("adminTaxGroups.table.ecoTax")}</TableHead>
+                <TableHead className="text-right">{tr("common.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -323,7 +333,7 @@ export function AdminTaxGroupsPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          if (isDirty && !window.confirm("Discard unsaved changes?")) return
+                          if (isDirty && !window.confirm(tr("common.discardUnsavedChangesConfirm"))) return
                           startEdit({
                             id: t.id,
                             name: t.name,
@@ -332,7 +342,7 @@ export function AdminTaxGroupsPage() {
                           })
                         }}
                       >
-                        Edit
+                        {tr("common.edit")}
                       </Button>
                       <Button
                         type="button"
@@ -340,7 +350,7 @@ export function AdminTaxGroupsPage() {
                         size="sm"
                         onClick={() => onDelete(t.id)}
                       >
-                        Delete
+                        {tr("common.delete")}
                       </Button>
                     </div>
                   </TableCell>
@@ -349,7 +359,7 @@ export function AdminTaxGroupsPage() {
               {!isLoading && items.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={4} className="text-muted-foreground">
-                    No tax groups found.
+                    {tr("adminTaxGroups.table.emptyRow")}
                   </TableCell>
                 </TableRow>
               )}

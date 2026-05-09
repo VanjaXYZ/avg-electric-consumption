@@ -1,0 +1,133 @@
+{
+  "app": {
+    "title": "Planer električne energije",
+    "subtitle": "LANACO zadatak"
+  },
+  "nav": {
+    "recommendation": "Preporuka",
+    "taxGroups": "Poreske grupe",
+    "plans": "Planovi"
+  },
+  "common": {
+    "language": "Jezik",
+    "theme": "Tema",
+    "system": "Sistem",
+    "light": "Svetla",
+    "dark": "Tamna",
+    "error": "Greška",
+    "refresh": "Osveži",
+    "refreshing": "Osvežavam…",
+    "save": "Sačuvaj",
+    "saving": "Čuvam…",
+    "cancel": "Otkaži",
+    "create": "Kreiraj",
+    "update": "Ažuriraj",
+    "edit": "Izmeni",
+    "delete": "Obriši",
+    "actions": "Akcije",
+    "discardUnsavedChangesConfirm": "Odbaciti nesačuvane promene?"
+  },
+  "recommendation": {
+    "pageTitle": "Preporuka tarife za električnu energiju",
+    "pageSubtitle": "Unesite prosečnu mesečnu potrošnju i poresku grupu da dobijete najpovoljniji plan.",
+    "howItWorksTitle": "Kako radi",
+    "howItWorksSteps": [
+      "Unesite prosečnu mesečnu potrošnju u kWh i izaberite poresku grupu.",
+      "Izračunaćemo ukupnu cenu za svaki plan, uključujući PDV i ekološke takse.",
+      "Najjeftiniji plan biće označen kao preporučen."
+    ],
+    "toastSuccess": "Preporuka izračunata",
+    "toastFailFallback": "Preporuka nije uspela",
+    "taxGroupsEmptyTitle": "Nema poreskih grupa",
+    "taxGroupsEmptyDesc": "Sistem je vratio praznu listu poreskih grupa. Dodajte bar jednu u backend, pa osvežite.",
+    "recommendedPlanTitle": "Preporučeni plan",
+    "allPlansTitle": "Svi planovi",
+    "grandTotal": "Ukupno",
+    "table": {
+      "plan": "Plan",
+      "energy": "Energija",
+      "discount": "Popust",
+      "afterDiscount": "Posle popusta",
+      "ecoTax": "Eko taksa",
+      "vat": "PDV",
+      "grandTotal": "Ukupno"
+    }
+  },
+  "recommendationForm": {
+    "title": "Dobij preporuku",
+    "subtitle": "Unesite mesečnu potrošnju i poresku grupu. Izračunaćemo najjeftiniji plan.",
+    "kwhLabel": "Prosečna mesečna potrošnja (kWh)",
+    "kwhPlaceholder": "npr. 350",
+    "kwhTip": "Savet: veća potrošnja može otključati popuste.",
+    "taxGroupLabel": "Poreska grupa",
+    "taxGroupPlaceholder": "Izaberite poresku grupu",
+    "taxGroupVatHint": "PDV {{percent}}%",
+    "taxGroupTip": "Porezi utiču na PDV i ekološke naknade.",
+    "submit": "Izračunaj preporuku",
+    "submitting": "Računam…"
+  },
+  "adminTaxGroups": {
+    "pageTitle": "Admin · Poreske grupe",
+    "pageSubtitle": "Upravljajte PDV-om i ekološkim taksama po grupama.",
+    "formTitleCreate": "Kreiraj poresku grupu",
+    "formTitleEdit": "Izmeni poresku grupu",
+    "nameLabel": "Naziv",
+    "namePlaceholder": "npr. domaćinstva",
+    "vatLabel": "PDV (npr. 0.17)",
+    "ecoTaxLabel": "Eko taksa (po kWh)",
+    "helpText": "PDV i Eko taksa moraju biti nenegativni.",
+    "listTitle": "Sve poreske grupe",
+    "emptyTitle": "Još nema poreskih grupa",
+    "emptyDesc": "Kreirajte prvu poresku grupu da omogućite obračune troškova.",
+    "emptyCta": "Kreiraj prvu poresku grupu",
+    "confirmDelete": "Obrisati ovu poresku grupu?",
+    "toastCreated": "Poreska grupa kreirana",
+    "toastUpdated": "Poreska grupa ažurirana",
+    "toastDeleted": "Poreska grupa obrisana",
+    "loadFailFallback": "Učitavanje poreskih grupa nije uspelo",
+    "saveFailFallback": "Čuvanje poreske grupe nije uspelo",
+    "deleteFailFallback": "Brisanje poreske grupe nije uspelo",
+    "table": {
+      "name": "Naziv",
+      "vat": "PDV",
+      "ecoTax": "Eko taksa",
+      "emptyRow": "Nema poreskih grupa."
+    }
+  },
+  "adminPlans": {
+    "pageTitle": "Admin · Planovi",
+    "pageSubtitle": "Upravljajte planovima i tarifama po nivoima.",
+    "formTitleCreate": "Kreiraj plan",
+    "formTitleEdit": "Izmeni plan",
+    "nameLabel": "Naziv",
+    "namePlaceholder": "npr. Standard",
+    "discountLabel": "Popust (0–1)",
+    "discountPlaceholder": "npr. 0.1",
+    "discountHelpText": "Popust je razlomak (npr. 0.1 = 10%).",
+    "tiersTitle": "Cenovni nivoi",
+    "addTier": "Dodaj nivo",
+    "thresholdLabel": "Prag (kWh, opciono)",
+    "thresholdPlaceholder": "npr. 300",
+    "pricePerKwhLabel": "Cena po kWh",
+    "pricePerKwhPlaceholder": "npr. 0.12",
+    "removeTier": "Ukloni",
+    "tiersTip": "Savet: držite jedan nivo sa praznim pragom kao “podrazumevani” nivo.",
+    "listTitle": "Svi planovi",
+    "emptyTitle": "Još nema planova",
+    "emptyDesc": "Kreirajte prvi plan da omogućite preporuke.",
+    "emptyCta": "Kreiraj prvi plan",
+    "confirmDelete": "Obrisati ovaj plan?",
+    "toastCreated": "Plan kreiran",
+    "toastUpdated": "Plan ažuriran",
+    "toastDeleted": "Plan obrisan",
+    "loadFailFallback": "Učitavanje planova nije uspelo",
+    "saveFailFallback": "Čuvanje plana nije uspelo",
+    "deleteFailFallback": "Brisanje plana nije uspelo",
+    "table": {
+      "name": "Naziv",
+      "discount": "Popust",
+      "tiers": "Nivoi",
+      "emptyRow": "Nema planova."
+    }
+  }
+}

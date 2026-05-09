@@ -2,6 +2,7 @@ import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { sanitizeDecimalInput, sanitizeIntegerInput } from "../../lib/input"
+import { useTranslation } from "react-i18next"
 export type TierDraft = {
   threshold: string
   pricePerKwh: string
@@ -14,6 +15,7 @@ type Props = {
 }
 
 export function PricingTiersEditor({ tiers, onChange, errors }: Props) {
+  const { t: tr } = useTranslation()
   function update(idx: number, patch: Partial<TierDraft>) {
     const next = tiers.map((t, i) => (i === idx ? { ...t, ...patch } : t))
     onChange(next)
@@ -30,9 +32,9 @@ export function PricingTiersEditor({ tiers, onChange, errors }: Props) {
   return (
     <div className="grid gap-3">
       <div className="flex items-center justify-between gap-3">
-        <div className="text-sm font-medium">Pricing tiers</div>
+        <div className="text-sm font-medium">{tr("adminPlans.tiersTitle")}</div>
         <Button type="button" variant="outline" size="sm" onClick={add}>
-          Add tier
+          {tr("adminPlans.addTier")}
         </Button>
       </div>
 
@@ -43,10 +45,10 @@ export function PricingTiersEditor({ tiers, onChange, errors }: Props) {
             className="grid gap-3 rounded-lg border p-3 sm:grid-cols-[1fr_1fr_auto]"
           >
             <div className="grid gap-2">
-              <Label>Threshold (kWh, optional)</Label>
+              <Label>{tr("adminPlans.thresholdLabel")}</Label>
               <Input
                 inputMode="numeric"
-                placeholder="e.g. 300"
+                placeholder={tr("adminPlans.thresholdPlaceholder")}
                 value={t.threshold}
                 onChange={(e) =>
                   update(idx, { threshold: sanitizeIntegerInput(e.target.value) })
@@ -57,10 +59,10 @@ export function PricingTiersEditor({ tiers, onChange, errors }: Props) {
               )}
             </div>
             <div className="grid gap-2">
-              <Label>Price per kWh</Label>
+              <Label>{tr("adminPlans.pricePerKwhLabel")}</Label>
               <Input
                 inputMode="decimal"
-                placeholder="e.g. 0.12"
+                placeholder={tr("adminPlans.pricePerKwhPlaceholder")}
                 value={t.pricePerKwh}
                 onChange={(e) =>
                   update(idx, { pricePerKwh: sanitizeDecimalInput(e.target.value) })
@@ -80,7 +82,7 @@ export function PricingTiersEditor({ tiers, onChange, errors }: Props) {
                 onClick={() => remove(idx)}
                 disabled={tiers.length <= 1}
               >
-                Remove
+                {tr("adminPlans.removeTier")}
               </Button>
             </div>
           </div>
@@ -88,7 +90,7 @@ export function PricingTiersEditor({ tiers, onChange, errors }: Props) {
       </div>
 
       <div className="text-xs text-muted-foreground">
-        Tip: Keep one tier with empty threshold to act as the “default” tier.
+        {tr("adminPlans.tiersTip")}
       </div>
     </div>
   )

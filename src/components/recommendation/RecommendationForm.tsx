@@ -19,6 +19,7 @@ import {
   recommendationFormSchema,
   type RecommendationFormValues,
 } from "../../validation/recommendation"
+import { useTranslation } from "react-i18next"
 
 type Props = {
   taxGroups: TaxGroup[]
@@ -35,6 +36,7 @@ export function RecommendationForm({
   isDisabled = false,
   onSubmit,
 }: Props) {
+  const { t } = useTranslation()
   const form = useForm<RecommendationFormValues>({
     resolver: zodResolver(recommendationFormSchema),
     defaultValues: {
@@ -50,10 +52,9 @@ export function RecommendationForm({
   return (
     <Card className="border-foreground/10 shadow-sm">
       <CardHeader className="space-y-1">
-        <CardTitle>Get a recommendation</CardTitle>
+        <CardTitle>{t("recommendationForm.title")}</CardTitle>
         <p className="text-sm text-muted-foreground">
-          Enter your monthly consumption and tax group. We'll calculate the
-          cheapest plan.
+          {t("recommendationForm.subtitle")}
         </p>
       </CardHeader>
       <CardContent>
@@ -65,11 +66,11 @@ export function RecommendationForm({
         >
           <div className="grid gap-4 sm:grid-cols-[1fr_minmax(240px,320px)]">
             <div className="grid gap-2">
-              <Label htmlFor="kwh">Average monthly consumption (kWh)</Label>
+              <Label htmlFor="kwh">{t("recommendationForm.kwhLabel")}</Label>
               <Input
                 id="kwh"
                 inputMode="decimal"
-                placeholder="e.g. 350"
+                placeholder={t("recommendationForm.kwhPlaceholder")}
                 disabled={isDisabled || isLoading}
                 aria-invalid={!!kwhError}
                 {...form.register("kwh", {
@@ -83,14 +84,14 @@ export function RecommendationForm({
                   <span className="text-destructive">{kwhError}</span>
                 ) : (
                   <span className="text-muted-foreground">
-                    Tip: higher consumption may unlock discounts.
+                    {t("recommendationForm.kwhTip")}
                   </span>
                 )}
               </div>
             </div>
 
             <div className="grid min-w-0 gap-2">
-              <Label>Tax group</Label>
+              <Label>{t("recommendationForm.taxGroupLabel")}</Label>
               <Controller
                 name="taxGroup"
                 control={form.control}
@@ -104,7 +105,7 @@ export function RecommendationForm({
                       className="w-full min-w-0"
                       aria-invalid={!!taxError}
                     >
-                      <SelectValue placeholder="Select tax group" />
+                      <SelectValue placeholder={t("recommendationForm.taxGroupPlaceholder")} />
                     </SelectTrigger>
                     <SelectContent position="popper" align="start">
                       {taxGroups.map((g) => (
@@ -112,7 +113,9 @@ export function RecommendationForm({
                           <div className="flex w-full items-center justify-between gap-3">
                             <span>{g.name}</span>
                             <span className="text-xs text-muted-foreground">
-                              VAT {Math.round(g.vat * 100)}%
+                              {t("recommendationForm.taxGroupVatHint", {
+                                percent: Math.round(g.vat * 100),
+                              })}
                             </span>
                           </div>
                         </SelectItem>
@@ -126,23 +129,21 @@ export function RecommendationForm({
                   <span className="text-destructive">{taxError}</span>
                 ) : (
                   <span className="text-muted-foreground">
-                    Taxes affect VAT and environmental fees.
+                    {t("recommendationForm.taxGroupTip")}
                   </span>
                 )}
               </div>
             </div>
           </div>
 
-          <div className="flex flex-col-reverse items-stretch justify-between gap-3 sm:flex-row sm:items-center">
-            <p className="text-xs text-muted-foreground">
-              Includes validation, errors, and loading state.
-            </p>
+          <div className="flex justify-end">
+
             <Button
               type="submit"
               className="sm:min-w-44"
               disabled={isDisabled || isLoading}
             >
-              {isLoading ? "Calculating…" : "Get recommendation"}
+              {isLoading ? t("recommendationForm.submitting") : t("recommendationForm.submit")}
             </Button>
           </div>
         </form>

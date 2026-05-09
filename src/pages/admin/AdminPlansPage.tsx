@@ -24,6 +24,7 @@ import { Skeleton } from "../../components/ui/skeleton"
 import type { Plan, PlanUpsertRequest } from "../../types/plan"
 import { planUpsertSchema } from "../../validation/plan"
 import { toast } from "sonner"
+import { useTranslation } from "react-i18next"
 
 type FormDraft = {
   id?: number
@@ -51,6 +52,7 @@ function toDraft(plan: Plan): FormDraft {
 }
 
 export function AdminPlansPage() {
+  const { t: tr } = useTranslation()
   const [items, setItems] = useState<Plan[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
@@ -121,7 +123,7 @@ export function AdminPlansPage() {
       const data = await getPlans()
       setItems(data)
     } catch (e) {
-      setError(getApiErrorMessage(e, "Failed to load plans"))
+      setError(getApiErrorMessage(e, tr("adminPlans.loadFailFallback")))
     } finally {
       setIsLoading(false)
     }
@@ -154,16 +156,16 @@ export function AdminPlansPage() {
 
       if (isEdit) {
         await updatePlan(form.id!, body)
-        toast.success("Plan updated")
+        toast.success(tr("adminPlans.toastUpdated"))
       } else {
         await createPlan(body)
-        toast.success("Plan created")
+        toast.success(tr("adminPlans.toastCreated"))
       }
 
       resetToCreate()
       await refresh()
     } catch (e) {
-      const msg = getApiErrorMessage(e, "Failed to save plan")
+      const msg = getApiErrorMessage(e, tr("adminPlans.saveFailFallback"))
       setError(msg)
       toast.error(msg)
     } finally {
@@ -172,14 +174,14 @@ export function AdminPlansPage() {
   }
 
   async function onDelete(id: number) {
-    if (!window.confirm("Delete this plan?")) return
+    if (!window.confirm(tr("adminPlans.confirmDelete"))) return
     setError(null)
     try {
       await deletePlan(id)
-      toast.success("Plan deleted")
+      toast.success(tr("adminPlans.toastDeleted"))
       await refresh()
     } catch (e) {
-      const msg = getApiErrorMessage(e, "Failed to delete plan")
+      const msg = getApiErrorMessage(e, tr("adminPlans.deleteFailFallback"))
       setError(msg)
       toast.error(msg)
     }
@@ -188,32 +190,34 @@ export function AdminPlansPage() {
   return (
     <div className="grid gap-6">
       <header className="space-y-2">
-        <h1 className="text-3xl font-semibold tracking-tight">Admin · Plans</h1>
+        <h1 className="text-3xl font-semibold tracking-tight">{tr("adminPlans.pageTitle")}</h1>
         <p className="text-sm text-muted-foreground">
-          Manage electricity billing plans and tiered pricing.
+          {tr("adminPlans.pageSubtitle")}
         </p>
       </header>
 
       {error && (
         <Alert variant="destructive">
-          <AlertTitle>Error</AlertTitle>
+          <AlertTitle>{tr("common.error")}</AlertTitle>
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle>{isEdit ? "Edit plan" : "Create plan"}</CardTitle>
+          <CardTitle>
+            {isEdit ? tr("adminPlans.formTitleEdit") : tr("adminPlans.formTitleCreate")}
+          </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-4">
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid gap-2">
-              <Label htmlFor="plan-name">Name</Label>
+              <Label htmlFor="plan-name">{tr("adminPlans.nameLabel")}</Label>
               <Input
                 id="plan-name"
                 ref={nameRef}
                 value={form.name}
-                placeholder="e.g. Standard"
+                placeholder={tr("adminPlans.namePlaceholder")}
                 onChange={(e) => {
                   setFieldErrors((s) => ({ ...s, name: undefined }))
                   setForm((s) => ({ ...s, name: e.target.value }))
@@ -224,11 +228,11 @@ export function AdminPlansPage() {
               )}
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="plan-discount">Discount (0–1)</Label>
+              <Label htmlFor="plan-discount">{tr("adminPlans.discountLabel")}</Label>
               <Input
                 id="plan-discount"
                 inputMode="decimal"
-                placeholder="e.g. 0.1"
+                placeholder={tr("adminPlans.discountPlaceholder")}
                 value={form.discount}
                 onChange={(e) => {
                   setFieldErrors((s) => ({ ...s, discount: undefined }))
@@ -252,7 +256,7 @@ export function AdminPlansPage() {
 
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="text-xs text-muted-foreground">
-              Discount is a fraction (e.g. 0.1 = 10%).
+              {tr("adminPlans.discountHelpText")}
             </div>
             <div className="flex items-center gap-2">
               {isEdit && (
@@ -260,16 +264,20 @@ export function AdminPlansPage() {
                   type="button"
                   variant="outline"
                   onClick={() => {
-                    if (isDirty && !window.confirm("Discard unsaved changes?")) return
+                    if (isDirty && !window.confirm(tr("common.discardUnsavedChangesConfirm"))) return
                     resetToCreate()
                   }}
                   disabled={isSaving}
                 >
-                  Cancel
+                  {tr("common.cancel")}
                 </Button>
               )}
               <Button type="button" onClick={onSave} disabled={isSaving}>
-                {isSaving ? "Saving…" : isEdit ? "Update" : "Create"}
+                {isSaving
+                  ? tr("common.saving")
+                  : isEdit
+                    ? tr("common.update")
+                    : tr("common.create")}
               </Button>
             </div>
           </div>
@@ -278,17 +286,17 @@ export function AdminPlansPage() {
 
       <Card className="shadow-sm">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>All plans</CardTitle>
+          <CardTitle>{tr("adminPlans.listTitle")}</CardTitle>
           <Button type="button" variant="outline" onClick={refresh} disabled={isLoading}>
-            {isLoading ? "Refreshing…" : "Refresh"}
+            {isLoading ? tr("common.refreshing") : tr("common.refresh")}
           </Button>
         </CardHeader>
         <CardContent>
           {!isLoading && items.length === 0 && (
             <div className="mb-4 rounded-lg border bg-muted/20 p-4">
-              <div className="text-sm font-medium">No plans yet</div>
+              <div className="text-sm font-medium">{tr("adminPlans.emptyTitle")}</div>
               <div className="mt-1 text-sm text-muted-foreground">
-                Create your first plan to enable recommendations.
+                {tr("adminPlans.emptyDesc")}
               </div>
               <div className="mt-3">
                 <Button
@@ -298,7 +306,7 @@ export function AdminPlansPage() {
                     queueMicrotask(() => nameRef.current?.focus())
                   }}
                 >
-                  Create first plan
+                  {tr("adminPlans.emptyCta")}
                 </Button>
               </div>
             </div>
@@ -306,10 +314,10 @@ export function AdminPlansPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead className="text-right">Discount</TableHead>
-                <TableHead className="text-right">Tiers</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>{tr("adminPlans.table.name")}</TableHead>
+                <TableHead className="text-right">{tr("adminPlans.table.discount")}</TableHead>
+                <TableHead className="text-right">{tr("adminPlans.table.tiers")}</TableHead>
+                <TableHead className="text-right">{tr("common.actions")}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -349,11 +357,11 @@ export function AdminPlansPage() {
                         variant="outline"
                         size="sm"
                         onClick={() => {
-                          if (isDirty && !window.confirm("Discard unsaved changes?")) return
+                          if (isDirty && !window.confirm(tr("common.discardUnsavedChangesConfirm"))) return
                           startEdit(toDraft(p))
                         }}
                       >
-                        Edit
+                        {tr("common.edit")}
                       </Button>
                       <Button
                         type="button"
@@ -361,7 +369,7 @@ export function AdminPlansPage() {
                         size="sm"
                         onClick={() => onDelete(p.id)}
                       >
-                        Delete
+                        {tr("common.delete")}
                       </Button>
                     </div>
                   </TableCell>
@@ -370,7 +378,7 @@ export function AdminPlansPage() {
               {!isLoading && items.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={4} className="text-muted-foreground">
-                    No plans found.
+                    {tr("adminPlans.table.emptyRow")}
                   </TableCell>
                 </TableRow>
               )}
