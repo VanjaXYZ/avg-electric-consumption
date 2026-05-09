@@ -1,6 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
-import { z } from "zod"
 
 import { Button } from "../ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
@@ -15,18 +14,10 @@ import {
 } from "../ui/select"
 import type { Recommendation } from "../../types/recommendation"
 import type { TaxGroup } from "../../types/tax-group"
-
-const schema = z.object({
-  kwh: z
-    .string()
-    .min(1, "kWh is required")
-    .refine((v) => Number.isFinite(Number(v)) && Number(v) > 0, {
-      message: "kWh must be greater than 0",
-    }),
-  taxGroup: z.string().min(1, "Tax group is required"),
-})
-
-type Values = z.infer<typeof schema>
+import {
+  recommendationFormSchema,
+  type RecommendationFormValues,
+} from "../../validation/recommendation"
 
 type Props = {
   taxGroups: TaxGroup[]
@@ -43,8 +34,8 @@ export function RecommendationForm({
   isDisabled = false,
   onSubmit,
 }: Props) {
-  const form = useForm<Values>({
-    resolver: zodResolver(schema),
+  const form = useForm<RecommendationFormValues>({
+    resolver: zodResolver(recommendationFormSchema),
     defaultValues: {
       kwh: "",
       taxGroup: defaultTaxGroupName ?? "",

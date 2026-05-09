@@ -1,0 +1,209 @@
+import { useEffect, useMemo, useState } from "react"
+
+import { getRecommendation } from "../api/recommendation"
+import { getTaxGroups } from "../api/tax-groups"
+import { getApiErrorMessage } from "../api/error"
+import { createCurrencyFormatter } from "../lib/format"
+import { RecommendationForm } from "../components/recommendation/RecommendationForm"
+import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert"
+import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../components/ui/table"
+import type { RecommendationResponse } from "../types/recommendation"
+import type { TaxGroup } from "../types/tax-group"
+
+const HOW_IT_WORKS = [
+  "Enter your average monthly consumption in kWh and select your tax group.",
+  "We’ll calculate the total cost for each available plan, including VAT and environmental taxes.",
+  "The cheapest plan will be highlighted as recommended.",
+]
+
+export function RecommendationPage() {
+  const [taxGroups, setTaxGroups] = useState<TaxGroup[]>([])
+  const [isLoadingTaxGroups, setIsLoadingTaxGroups] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [result, setResult] = useState<RecommendationResponse | null>(null)
+  const [hasSubmitted, setHasSubmitted] = useState(false)
+
+  const defaultTaxGroupName = useMemo(
+    () => (taxGroups.length > 0 ? taxGroups[0].name : undefined),
+    [taxGroups]
+  )
+
+  const formatCurrency = useMemo(() => createCurrencyFormatter(), [])
+
+  useEffect(() => {
+    let ignore = false
+
+    async function loadTaxGroups() {
+      setIsLoadingTaxGroups(true)
+      setError(null)
+      try {
+        const data = await getTaxGroups()
+        if (ignore) return
+        setTaxGroups(data)
+      } catch (e) {
+        if (ignore) return
+        setError(getApiErrorMessage(e, "Failed to load tax groups"))
+      } finally {
+        if (ignore) return
+        setIsLoadingTaxGroups(false)
+      }
+    }
+
+    void loadTaxGroups()
+
+    return () => {
+      ignore = true
+    }
+  }, [])
+
+  return (
+    <div className="grid gap-6">
+      <header className="space-y-2">
+        <h1 className="text-3xl font-semibold tracking-tight sm:text-4xl">
+          Electricity plan recommendation
+        </h1>
+        <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
+          Enter your average monthly consumption and tax group to get the most
+          cost-efficient billing plan.
+        </p>
+      </header>
+
+      <RecommendationForm
+        taxGroups={taxGroups}
+        defaultTaxGroupName={defaultTaxGroupName}
+        isDisabled={isLoadingTaxGroups}
+        isLoading={isSubmitting}
+        onSubmit={async (values) => {
+          setHasSubmitted(true)
+          setError(null)
+          setResult(null)
+          setIsSubmitting(true)
+          try {
+            const data = await getRecommendation(values)
+            setResult(data)
+          } catch (e) {
+            setError(getApiErrorMessage(e, "Recommendation failed"))
+          } finally {
+            setIsSubmitting(false)
+          }
+        }}
+      />
+
+      {!isLoadingTaxGroups && taxGroups.length === 0 && !error && (
+        <Alert>
+          <AlertTitle>No tax groups available</AlertTitle>
+          <AlertDescription>
+            The system returned an empty list of tax groups. Seed at least one
+            tax group in the backend, then refresh.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {!result && !error && !isSubmitting && !hasSubmitted && (
+        <Card className="shadow-sm">
+          <CardHeader>
+            <CardTitle>How it works</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-2 text-sm text-muted-foreground">
+            {HOW_IT_WORKS.map((step, index) => (
+              <p key={index}>{`${index + 1}. ${step}`}</p>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {result && (
+        <>
+          <Card className="border-primary/20 bg-gradient-to-b from-primary/5 to-background">
+            <CardHeader>
+              <CardTitle>Recommended plan</CardTitle>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div className="text-lg font-semibold">
+                {result.recommended.planName}
+              </div>
+              <div className="rounded-lg border bg-background/60 px-3 py-2 text-sm">
+                Grand total:{" "}
+                <span className="font-semibold tabular-nums">
+                  {formatCurrency(result.recommended.costs.grandTotal)}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle>All plans</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Plan</TableHead>
+                    <TableHead className="text-right">Energy</TableHead>
+                    <TableHead className="text-right">Discount</TableHead>
+                    <TableHead className="text-right">After discount</TableHead>
+                    <TableHead className="text-right">Eco tax</TableHead>
+                    <TableHead className="text-right">VAT</TableHead>
+                    <TableHead className="text-right">Grand total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {result.allPlans.map((p) => (
+                    <TableRow
+                      key={p.planId}
+                      className={
+                        p.planId === result.recommended.planId
+                          ? "bg-primary/5"
+                          : undefined
+                      }
+                    >
+                      <TableCell className="font-medium">{p.planName}</TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatCurrency(p.costs.energySubtotal)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatCurrency(
+                          p.costs.energySubtotal - p.costs.energyAfterDiscount
+                        )}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatCurrency(p.costs.energyAfterDiscount)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatCurrency(p.costs.ecoTaxTotal)}
+                      </TableCell>
+                      <TableCell className="text-right tabular-nums">
+                        {formatCurrency(p.costs.vatAmount)}
+                      </TableCell>
+                      <TableCell className="text-right font-semibold tabular-nums">
+                        {formatCurrency(p.costs.grandTotal)}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </>
+      )}
+    </div>
+  )
+}
+
