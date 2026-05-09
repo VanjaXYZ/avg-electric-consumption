@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import {
   createTaxGroup,
@@ -7,6 +7,8 @@ import {
   updateTaxGroup,
 } from "../../api/tax-groups"
 import { getApiErrorMessage } from "../../api/error"
+import { sanitizeDecimalInput } from "../../lib/input"
+import { toast } from "sonner"
 import { Alert, AlertDescription, AlertTitle } from "../../components/ui/alert"
 import { Button } from "../../components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/card"
@@ -20,6 +22,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table"
+import { Skeleton } from "../../components/ui/skeleton"
 import type { CreateTaxGroupRequest, TaxGroup } from "../../types/tax-group"
 import { taxGroupSchema } from "../../validation/tax-group"
 
@@ -30,11 +33,17 @@ type FormState = {
   ecoTax: string
 }
 
+type FieldErrors = Partial<Record<keyof Omit<FormState, "id">, string>>
+
 export function AdminTaxGroupsPage() {
   const [items, setItems] = useState<TaxGroup[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
+
+  const nameRef = useRef<HTMLInputElement | null>(null)
+  const initialRef = useRef<FormState | null>(null)
 
   const [form, setForm] = useState<FormState>({
     name: "",
@@ -43,6 +52,36 @@ export function AdminTaxGroupsPage() {
   })
 
   const isEdit = useMemo(() => typeof form.id === "number", [form.id])
+  const isDirty = useMemo(() => {
+    const initial = initialRef.current
+    if (!isEdit || !initial) return false
+    return JSON.stringify(form) !== JSON.stringify(initial)
+  }, [form, isEdit])
+
+  function mapIssues(
+    issues: { path: readonly PropertyKey[]; message: string }[]
+  ): FieldErrors {
+    const next: FieldErrors = {}
+    for (const issue of issues) {
+      const key = issue.path[0] as unknown
+      if (key === "name" || key === "vat" || key === "ecoTax") next[key] = issue.message
+    }
+    return next
+  }
+
+  function resetToCreate() {
+    setFieldErrors({})
+    initialRef.current = null
+    setForm({ name: "", vat: "", ecoTax: "" })
+    queueMicrotask(() => nameRef.current?.focus())
+  }
+
+  function startEdit(next: FormState) {
+    setFieldErrors({})
+    initialRef.current = next
+    setForm(next)
+    queueMicrotask(() => nameRef.current?.focus())
+  }
 
   async function refresh() {
     setIsLoading(true)
@@ -64,6 +103,7 @@ export function AdminTaxGroupsPage() {
   async function onSave() {
     setIsSaving(true)
     setError(null)
+    setFieldErrors({})
     try {
       const parsed = taxGroupSchema.safeParse({
         name: form.name,
@@ -72,7 +112,7 @@ export function AdminTaxGroupsPage() {
       })
 
       if (!parsed.success) {
-        setError(parsed.error.issues[0]?.message ?? "Invalid tax group")
+        setFieldErrors(mapIssues(parsed.error.issues))
         return
       }
 
@@ -80,14 +120,18 @@ export function AdminTaxGroupsPage() {
 
       if (isEdit) {
         await updateTaxGroup(form.id!, body)
+        toast.success("Tax group updated")
       } else {
         await createTaxGroup(body)
+        toast.success("Tax group created")
       }
 
-      setForm({ name: "", vat: "", ecoTax: "" })
+      resetToCreate()
       await refresh()
     } catch (e) {
-      setError(getApiErrorMessage(e, "Failed to save tax group"))
+      const msg = getApiErrorMessage(e, "Failed to save tax group")
+      setError(msg)
+      toast.error(msg)
     } finally {
       setIsSaving(false)
     }
@@ -98,9 +142,12 @@ export function AdminTaxGroupsPage() {
     setError(null)
     try {
       await deleteTaxGroup(id)
+      toast.success("Tax group deleted")
       await refresh()
     } catch (e) {
-      setError(getApiErrorMessage(e, "Failed to delete tax group"))
+      const msg = getApiErrorMessage(e, "Failed to delete tax group")
+      setError(msg)
+      toast.error(msg)
     }
   }
 
@@ -130,10 +177,17 @@ export function AdminTaxGroupsPage() {
               <Label htmlFor="tg-name">Name</Label>
               <Input
                 id="tg-name"
+                ref={nameRef}
                 value={form.name}
-                onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
+                onChange={(e) => {
+                  setFieldErrors((s) => ({ ...s, name: undefined }))
+                  setForm((s) => ({ ...s, name: e.target.value }))
+                }}
                 placeholder="e.g. household"
               />
+              {fieldErrors.name && (
+                <div className="text-xs text-destructive">{fieldErrors.name}</div>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="tg-vat">VAT (e.g. 0.17)</Label>
@@ -142,10 +196,14 @@ export function AdminTaxGroupsPage() {
                 inputMode="decimal"
                 placeholder="e.g. 0.17"
                 value={form.vat}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, vat: e.target.value }))
-                }
+                onChange={(e) => {
+                  setFieldErrors((s) => ({ ...s, vat: undefined }))
+                  setForm((s) => ({ ...s, vat: sanitizeDecimalInput(e.target.value) }))
+                }}
               />
+              {fieldErrors.vat && (
+                <div className="text-xs text-destructive">{fieldErrors.vat}</div>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="tg-eco">Eco tax (per kWh)</Label>
@@ -154,10 +212,17 @@ export function AdminTaxGroupsPage() {
                 inputMode="decimal"
                 placeholder="e.g. 0.01"
                 value={form.ecoTax}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, ecoTax: e.target.value }))
-                }
+                onChange={(e) => {
+                  setFieldErrors((s) => ({ ...s, ecoTax: undefined }))
+                  setForm((s) => ({
+                    ...s,
+                    ecoTax: sanitizeDecimalInput(e.target.value),
+                  }))
+                }}
               />
+              {fieldErrors.ecoTax && (
+                <div className="text-xs text-destructive">{fieldErrors.ecoTax}</div>
+              )}
             </div>
           </div>
 
@@ -170,7 +235,10 @@ export function AdminTaxGroupsPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => setForm({ name: "", vat: "", ecoTax: "" })}
+                  onClick={() => {
+                    if (isDirty && !window.confirm("Discard unsaved changes?")) return
+                    resetToCreate()
+                  }}
                   disabled={isSaving}
                 >
                   Cancel
@@ -192,6 +260,25 @@ export function AdminTaxGroupsPage() {
           </Button>
         </CardHeader>
         <CardContent>
+          {!isLoading && items.length === 0 && (
+            <div className="mb-4 rounded-lg border bg-muted/20 p-4">
+              <div className="text-sm font-medium">No tax groups yet</div>
+              <div className="mt-1 text-sm text-muted-foreground">
+                Create your first tax group to enable cost calculations.
+              </div>
+              <div className="mt-3">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    window.scrollTo({ top: 0, behavior: "smooth" })
+                    queueMicrotask(() => nameRef.current?.focus())
+                  }}
+                >
+                  Create first tax group
+                </Button>
+              </div>
+            </div>
+          )}
           <Table>
             <TableHeader>
               <TableRow>
@@ -202,6 +289,26 @@ export function AdminTaxGroupsPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
+              {isLoading &&
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={`sk-${i}`}>
+                    <TableCell>
+                      <Skeleton className="h-4 w-40" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-4 w-16" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-4 w-16" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Skeleton className="h-8 w-14" />
+                        <Skeleton className="h-8 w-16" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
               {items.map((t) => (
                 <TableRow key={t.id}>
                   <TableCell className="font-medium">{t.name}</TableCell>
@@ -215,14 +322,15 @@ export function AdminTaxGroupsPage() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() =>
-                          setForm({
+                        onClick={() => {
+                          if (isDirty && !window.confirm("Discard unsaved changes?")) return
+                          startEdit({
                             id: t.id,
                             name: t.name,
                             vat: String(t.vat),
                             ecoTax: String(t.ecoTax),
                           })
-                        }
+                        }}
                       >
                         Edit
                       </Button>
@@ -238,7 +346,7 @@ export function AdminTaxGroupsPage() {
                   </TableCell>
                 </TableRow>
               ))}
-              {items.length === 0 && (
+              {!isLoading && items.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={4} className="text-muted-foreground">
                     No tax groups found.

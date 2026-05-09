@@ -2,6 +2,7 @@ import { NavLink, Outlet } from "react-router-dom"
 
 import { cn } from "../../lib/utils"
 import { Separator } from "../ui/separator"
+import { Toaster } from "../ui/sonner"
 
 function NavItem({ to, label }: { to: string; label: string }) {
   return (
@@ -43,6 +44,8 @@ export function AppLayout() {
       <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6">
         <Outlet />
       </main>
+
+      <Toaster position="top-center" />
     </div>
   )
 }

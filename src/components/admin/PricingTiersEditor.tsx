@@ -1,6 +1,7 @@
 import { Button } from "../ui/button"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
+import { sanitizeDecimalInput, sanitizeIntegerInput } from "../../lib/input"
 export type TierDraft = {
   threshold: string
   pricePerKwh: string
@@ -9,9 +10,10 @@ export type TierDraft = {
 type Props = {
   tiers: TierDraft[]
   onChange: (tiers: TierDraft[]) => void
+  errors?: Record<number, Partial<Record<keyof TierDraft, string>>>
 }
 
-export function PricingTiersEditor({ tiers, onChange }: Props) {
+export function PricingTiersEditor({ tiers, onChange, errors }: Props) {
   function update(idx: number, patch: Partial<TierDraft>) {
     const next = tiers.map((t, i) => (i === idx ? { ...t, ...patch } : t))
     onChange(next)
@@ -46,8 +48,13 @@ export function PricingTiersEditor({ tiers, onChange }: Props) {
                 inputMode="numeric"
                 placeholder="e.g. 300"
                 value={t.threshold}
-                onChange={(e) => update(idx, { threshold: e.target.value })}
+                onChange={(e) =>
+                  update(idx, { threshold: sanitizeIntegerInput(e.target.value) })
+                }
               />
+              {errors?.[idx]?.threshold && (
+                <div className="text-xs text-destructive">{errors[idx]?.threshold}</div>
+              )}
             </div>
             <div className="grid gap-2">
               <Label>Price per kWh</Label>
@@ -55,8 +62,15 @@ export function PricingTiersEditor({ tiers, onChange }: Props) {
                 inputMode="decimal"
                 placeholder="e.g. 0.12"
                 value={t.pricePerKwh}
-                onChange={(e) => update(idx, { pricePerKwh: e.target.value })}
+                onChange={(e) =>
+                  update(idx, { pricePerKwh: sanitizeDecimalInput(e.target.value) })
+                }
               />
+              {errors?.[idx]?.pricePerKwh && (
+                <div className="text-xs text-destructive">
+                  {errors[idx]?.pricePerKwh}
+                </div>
+              )}
             </div>
             <div className="flex items-end justify-end">
               <Button

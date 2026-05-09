@@ -7,6 +7,7 @@ import { createCurrencyFormatter } from "../lib/format"
 import { RecommendationForm } from "../components/recommendation/RecommendationForm"
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert"
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
+import { Skeleton } from "../components/ui/skeleton"
 import {
   Table,
   TableBody,
@@ -17,6 +18,7 @@ import {
 } from "../components/ui/table"
 import type { RecommendationResponse } from "../types/recommendation"
 import type { TaxGroup } from "../types/tax-group"
+import { toast } from "sonner"
 
 const HOW_IT_WORKS = [
   "Enter your average monthly consumption in kWh and select your tax group.",
@@ -90,8 +92,11 @@ export function RecommendationPage() {
           try {
             const data = await getRecommendation(values)
             setResult(data)
+            toast.success("Recommendation calculated")
           } catch (e) {
-            setError(getApiErrorMessage(e, "Recommendation failed"))
+            const msg = getApiErrorMessage(e, "Recommendation failed")
+            setError(msg)
+            toast.error(msg)
           } finally {
             setIsSubmitting(false)
           }
@@ -126,6 +131,32 @@ export function RecommendationPage() {
             ))}
           </CardContent>
         </Card>
+      )}
+
+      {isSubmitting && !result && (
+        <div className="grid gap-6">
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle>Recommended plan</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-2">
+              <Skeleton className="h-6 w-52" />
+              <Skeleton className="h-4 w-40" />
+            </CardContent>
+          </Card>
+
+          <Card className="shadow-sm">
+            <CardHeader>
+              <CardTitle>All plans</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-2/3" />
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       {result && (

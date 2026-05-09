@@ -12,3 +12,10 @@ export const recommendationFormSchema = z.object({
 
 export type RecommendationFormValues = z.infer<typeof recommendationFormSchema>
 
+export const recommendationRequestSchema = z.object({
+  kwh: z.number().finite().positive(),
+  taxGroup: z.string().min(1),
+})
+
+export type RecommendationRequest = z.infer<typeof recommendationRequestSchema>
+

@@ -1,6 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
 
+import { sanitizeDecimalInput } from "../../lib/input"
 import { Button } from "../ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import { Input } from "../ui/input"
@@ -71,7 +72,11 @@ export function RecommendationForm({
                 placeholder="e.g. 350"
                 disabled={isDisabled || isLoading}
                 aria-invalid={!!kwhError}
-                {...form.register("kwh")}
+                {...form.register("kwh", {
+                  onChange: (e) => {
+                    e.target.value = sanitizeDecimalInput(e.target.value)
+                  },
+                })}
               />
               <div className="min-h-4 text-xs">
                 {kwhError ? (

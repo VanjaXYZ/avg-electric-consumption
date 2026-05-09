@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import { createPlan, deletePlan, getPlans, updatePlan } from "../../api/plans"
 import { getApiErrorMessage } from "../../api/error"
+import { sanitizeDecimalInput } from "../../lib/input"
 import {
   PricingTiersEditor,
   type TierDraft,
@@ -19,14 +20,22 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table"
+import { Skeleton } from "../../components/ui/skeleton"
 import type { Plan, PlanUpsertRequest } from "../../types/plan"
 import { planUpsertSchema } from "../../validation/plan"
+import { toast } from "sonner"
 
 type FormDraft = {
   id?: number
   name: string
   discount: string
   pricingTiers: TierDraft[]
+}
+
+type FieldErrors = {
+  name?: string
+  discount?: string
+  pricingTiers?: Record<number, { threshold?: string; pricePerKwh?: string }>
 }
 
 function toDraft(plan: Plan): FormDraft {
@@ -46,6 +55,10 @@ export function AdminPlansPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
+
+  const nameRef = useRef<HTMLInputElement | null>(null)
+  const initialDraftRef = useRef<FormDraft | null>(null)
 
   const [form, setForm] = useState<FormDraft>({
     name: "",
@@ -55,7 +68,51 @@ export function AdminPlansPage() {
 
   const isEdit = useMemo(() => typeof form.id === "number", [form.id])
 
-  // validation is handled by Zod schema in src/validation/plan.ts
+  const isDirty = useMemo(() => {
+    const initial = initialDraftRef.current
+    if (!isEdit || !initial) return false
+    return JSON.stringify(form) !== JSON.stringify(initial)
+  }, [form, isEdit])
+
+  function mapIssuesToFieldErrors(
+    issues: { path: readonly PropertyKey[]; message: string }[]
+  ) {
+    const next: FieldErrors = {}
+    for (const issue of issues) {
+      const [p0, p1, p2] = issue.path as readonly (string | number | symbol)[]
+      if (p0 === "name") next.name = issue.message
+      if (p0 === "discount") next.discount = issue.message
+      if (p0 === "pricingTiers" && typeof p1 === "number") {
+        next.pricingTiers ??= {}
+        next.pricingTiers[p1] ??= {}
+        if (p2 === "threshold") next.pricingTiers[p1].threshold = issue.message
+        if (p2 === "pricePerKwh") next.pricingTiers[p1].pricePerKwh = issue.message
+        if (typeof p2 === "undefined") {
+          // array-level error (e.g. min length). show it on first tier price field.
+          next.pricingTiers[p1].pricePerKwh ??= issue.message
+        }
+      }
+    }
+    return next
+  }
+
+  function resetToCreate() {
+    setFieldErrors({})
+    initialDraftRef.current = null
+    setForm({
+      name: "",
+      discount: "",
+      pricingTiers: [{ threshold: "", pricePerKwh: "" }],
+    })
+    queueMicrotask(() => nameRef.current?.focus())
+  }
+
+  function startEdit(nextDraft: FormDraft) {
+    setFieldErrors({})
+    initialDraftRef.current = nextDraft
+    setForm(nextDraft)
+    queueMicrotask(() => nameRef.current?.focus())
+  }
 
   async function refresh() {
     setIsLoading(true)
@@ -77,6 +134,7 @@ export function AdminPlansPage() {
   async function onSave() {
     setIsSaving(true)
     setError(null)
+    setFieldErrors({})
     try {
       const parsed = planUpsertSchema.safeParse({
         name: form.name,
@@ -88,7 +146,7 @@ export function AdminPlansPage() {
       })
 
       if (!parsed.success) {
-        setError(parsed.error.issues[0]?.message ?? "Invalid plan")
+        setFieldErrors(mapIssuesToFieldErrors(parsed.error.issues))
         return
       }
 
@@ -96,18 +154,18 @@ export function AdminPlansPage() {
 
       if (isEdit) {
         await updatePlan(form.id!, body)
+        toast.success("Plan updated")
       } else {
         await createPlan(body)
+        toast.success("Plan created")
       }
 
-      setForm({
-        name: "",
-        discount: "",
-        pricingTiers: [{ threshold: "", pricePerKwh: "" }],
-      })
+      resetToCreate()
       await refresh()
     } catch (e) {
-      setError(getApiErrorMessage(e, "Failed to save plan"))
+      const msg = getApiErrorMessage(e, "Failed to save plan")
+      setError(msg)
+      toast.error(msg)
     } finally {
       setIsSaving(false)
     }
@@ -118,9 +176,12 @@ export function AdminPlansPage() {
     setError(null)
     try {
       await deletePlan(id)
+      toast.success("Plan deleted")
       await refresh()
     } catch (e) {
-      setError(getApiErrorMessage(e, "Failed to delete plan"))
+      const msg = getApiErrorMessage(e, "Failed to delete plan")
+      setError(msg)
+      toast.error(msg)
     }
   }
 
@@ -150,10 +211,17 @@ export function AdminPlansPage() {
               <Label htmlFor="plan-name">Name</Label>
               <Input
                 id="plan-name"
+                ref={nameRef}
                 value={form.name}
                 placeholder="e.g. Standard"
-                onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
+                onChange={(e) => {
+                  setFieldErrors((s) => ({ ...s, name: undefined }))
+                  setForm((s) => ({ ...s, name: e.target.value }))
+                }}
               />
+              {fieldErrors.name && (
+                <div className="text-xs text-destructive">{fieldErrors.name}</div>
+              )}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="plan-discount">Discount (0–1)</Label>
@@ -162,14 +230,24 @@ export function AdminPlansPage() {
                 inputMode="decimal"
                 placeholder="e.g. 0.1"
                 value={form.discount}
-                onChange={(e) => setForm((s) => ({ ...s, discount: e.target.value }))}
+                onChange={(e) => {
+                  setFieldErrors((s) => ({ ...s, discount: undefined }))
+                  setForm((s) => ({
+                    ...s,
+                    discount: sanitizeDecimalInput(e.target.value),
+                  }))
+                }}
               />
+              {fieldErrors.discount && (
+                <div className="text-xs text-destructive">{fieldErrors.discount}</div>
+              )}
             </div>
           </div>
 
           <PricingTiersEditor
             tiers={form.pricingTiers}
             onChange={(tiers) => setForm((s) => ({ ...s, pricingTiers: tiers }))}
+            errors={fieldErrors.pricingTiers}
           />
 
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -181,13 +259,10 @@ export function AdminPlansPage() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() =>
-                    setForm({
-                      name: "",
-                      discount: "",
-                      pricingTiers: [{ threshold: "", pricePerKwh: "" }],
-                    })
-                  }
+                  onClick={() => {
+                    if (isDirty && !window.confirm("Discard unsaved changes?")) return
+                    resetToCreate()
+                  }}
                   disabled={isSaving}
                 >
                   Cancel
@@ -209,6 +284,25 @@ export function AdminPlansPage() {
           </Button>
         </CardHeader>
         <CardContent>
+          {!isLoading && items.length === 0 && (
+            <div className="mb-4 rounded-lg border bg-muted/20 p-4">
+              <div className="text-sm font-medium">No plans yet</div>
+              <div className="mt-1 text-sm text-muted-foreground">
+                Create your first plan to enable recommendations.
+              </div>
+              <div className="mt-3">
+                <Button
+                  type="button"
+                  onClick={() => {
+                    window.scrollTo({ top: 0, behavior: "smooth" })
+                    queueMicrotask(() => nameRef.current?.focus())
+                  }}
+                >
+                  Create first plan
+                </Button>
+              </div>
+            </div>
+          )}
           <Table>
             <TableHeader>
               <TableRow>
@@ -219,6 +313,26 @@ export function AdminPlansPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
+              {isLoading &&
+                Array.from({ length: 5 }).map((_, i) => (
+                  <TableRow key={`sk-${i}`}>
+                    <TableCell>
+                      <Skeleton className="h-4 w-40" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-4 w-16" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="ml-auto h-4 w-10" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Skeleton className="h-8 w-14" />
+                        <Skeleton className="h-8 w-16" />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
               {items.map((p) => (
                 <TableRow key={p.id}>
                   <TableCell className="font-medium">{p.name}</TableCell>
@@ -234,9 +348,10 @@ export function AdminPlansPage() {
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() =>
-                          setForm(toDraft(p))
-                        }
+                        onClick={() => {
+                          if (isDirty && !window.confirm("Discard unsaved changes?")) return
+                          startEdit(toDraft(p))
+                        }}
                       >
                         Edit
                       </Button>
@@ -252,7 +367,7 @@ export function AdminPlansPage() {
                   </TableCell>
                 </TableRow>
               ))}
-              {items.length === 0 && (
+              {!isLoading && items.length === 0 && (
                 <TableRow>
                   <TableCell colSpan={4} className="text-muted-foreground">
                     No plans found.
