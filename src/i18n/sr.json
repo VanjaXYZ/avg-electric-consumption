@@ -129,5 +129,19 @@
       "tiers": "Nivoi",
       "emptyRow": "Nema planova."
     }
+  },
+  "auth": {
+    "signIn": "Prijava",
+    "signOut": "Odjava",
+    "title": "Prijava",
+    "subtitle": "Unesite podatke za pristup administratorskim funkcijama.",
+    "username": "Korisničko ime",
+    "password": "Lozinka",
+    "submit": "Prijavi se",
+    "submitting": "Prijavljivanje…",
+    "backHome": "Nazad na početnu",
+    "toastSuccess": "Uspešna prijava",
+    "loginFailFallback": "Prijava nije uspela",
+    "validationRequired": "Korisničko ime i lozinka su obavezni."
   }
 }

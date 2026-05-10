@@ -129,5 +129,19 @@
       "tiers": "Tiers",
       "emptyRow": "No plans found."
     }
+  },
+  "auth": {
+    "signIn": "Sign in",
+    "signOut": "Sign out",
+    "title": "Sign in",
+    "subtitle": "Enter your credentials to access admin features.",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Sign in",
+    "submitting": "Signing in…",
+    "backHome": "Back to home",
+    "toastSuccess": "Signed in successfully",
+    "loginFailFallback": "Sign in failed",
+    "validationRequired": "Username and password are required."
   }
 }
