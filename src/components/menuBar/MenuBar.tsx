@@ -76,6 +76,9 @@ export function MenuBar() {
                                     {t("nav.taxGroups")}
                                 </NavLink>
                                 <NavLink to="/admin/plans">{t("nav.plans")}</NavLink>
+                                <NavLink to="/admin/analytics">
+                                    {t("nav.analytics")}
+                                </NavLink>
                             </>
                         )}
                     </div>

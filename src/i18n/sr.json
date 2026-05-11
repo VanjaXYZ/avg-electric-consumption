@@ -6,7 +6,8 @@
   "nav": {
     "recommendation": "Preporuka",
     "taxGroups": "Poreske grupe",
-    "plans": "Planovi"
+    "plans": "Planovi",
+    "analytics": "Analitika"
   },
   "menu": {
     "title": "Meni",
@@ -136,6 +137,23 @@
       "tiers": "Nivoi",
       "emptyRow": "Nema planova."
     }
+  },
+  "adminAnalytics": {
+    "pageTitle": "Admin · Analitika",
+    "pageSubtitle": "Događaji preporuke planova: trend u rasponu datuma i ukupni zbrojevi kroz sve zapise.",
+    "rangeTitle": "Raspon datuma za trend",
+    "rangeDesc": "Trend koristi GET /analytics/plan-selections/trends. Pregled ukupno koristi sve sačuvane događaje.",
+    "fromLabel": "Od",
+    "toLabel": "Do",
+    "trendsChartTitle": "Izbori po danu i planu",
+    "trendsChartDesc": "Koliko je puta koji plan bio preporučen, po kalendarskom danu (UTC).",
+    "trendsEmpty": "Nema događaja u ovom rasponu. Pokrenite preporuke u aplikaciji da se podaci popune.",
+    "summaryChartTitle": "Ukupni izbori po planu",
+    "summaryChartDesc": "Ukupan broj događaja preporučenog plana po planu (nije filtrirano rasponom datuma).",
+    "summaryEmpty": "Još nema analitičkih podataka.",
+    "dateLabel": "Datum",
+    "selections": "Izbori",
+    "loadFailFallback": "Učitavanje analitike nije uspelo"
   },
   "auth": {
     "signIn": "Prijava",

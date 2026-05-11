@@ -45,6 +45,7 @@ export function AppLayout() {
               <>
                 <NavItem to="/admin/tax-groups" label={t("nav.taxGroups")} />
                 <NavItem to="/admin/plans" label={t("nav.plans")} />
+                <NavItem to="/admin/analytics" label={t("nav.analytics")} />
               </>
             )}
           </nav>

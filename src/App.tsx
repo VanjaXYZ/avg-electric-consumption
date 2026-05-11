@@ -6,6 +6,7 @@ import { AppLayout } from "./components/layout/AppLayout"
 import { Toaster } from "./components/ui/sonner"
 import { LoginPage } from "./pages/LoginPage"
 import { RecommendationPage } from "./pages/RecommendationPage"
+import { AdminAnalyticsPage } from "./pages/admin/AdminAnalyticsPage"
 import { AdminPlansPage } from "./pages/admin/AdminPlansPage"
 import { AdminTaxGroupsPage } from "./pages/admin/AdminTaxGroupsPage"
 
@@ -21,6 +22,7 @@ export default function App() {
             <Route element={<RequireAdmin />}>
               <Route path="/admin/tax-groups" element={<AdminTaxGroupsPage />} />
               <Route path="/admin/plans" element={<AdminPlansPage />} />
+              <Route path="/admin/analytics" element={<AdminAnalyticsPage />} />
             </Route>
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>

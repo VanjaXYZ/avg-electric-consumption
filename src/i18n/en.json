@@ -6,7 +6,8 @@
   "nav": {
     "recommendation": "Recommendation",
     "taxGroups": "Tax groups",
-    "plans": "Plans"
+    "plans": "Plans",
+    "analytics": "Analytics"
   },
   "menu": {
     "title": "Menu",
@@ -136,6 +137,23 @@
       "tiers": "Tiers",
       "emptyRow": "No plans found."
     }
+  },
+  "adminAnalytics": {
+    "pageTitle": "Admin · Analytics",
+    "pageSubtitle": "Plan recommendation events: trends over a date range and totals across all time.",
+    "rangeTitle": "Trend date range",
+    "rangeDesc": "Trends use GET /analytics/plan-selections/trends. Summary totals use all stored events.",
+    "fromLabel": "From",
+    "toLabel": "To",
+    "trendsChartTitle": "Selections per day by plan",
+    "trendsChartDesc": "How often each plan was the recommended winner, per calendar day (UTC).",
+    "trendsEmpty": "No events in this range. Run recommendations in the app to populate data.",
+    "summaryChartTitle": "All-time selections by plan",
+    "summaryChartDesc": "Total recommended-plan events per plan (not filtered by the date range).",
+    "summaryEmpty": "No analytics data yet.",
+    "dateLabel": "Date",
+    "selections": "Selections",
+    "loadFailFallback": "Failed to load analytics"
   },
   "auth": {
     "signIn": "Sign in",
