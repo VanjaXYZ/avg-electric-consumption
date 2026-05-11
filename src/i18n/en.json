@@ -8,6 +8,13 @@
     "taxGroups": "Tax groups",
     "plans": "Plans"
   },
+  "menu": {
+    "title": "Menu",
+    "description": "Navigate the app or change theme and language below.",
+    "systemSettings": "System settings",
+    "guest": "Guest",
+    "userFallback": "User"
+  },
   "common": {
     "language": "Language",
     "theme": "Theme",

@@ -35,7 +35,11 @@ export function LoginPage() {
     setIsSubmitting(true)
     try {
       const data = await login({ username: u, password })
-      setAuthSession(data.token, data.role)
+      setAuthSession(
+        data.token,
+        data.role,
+        data.username?.trim() || u
+      )
       toast.success(t("auth.toastSuccess"))
       const safeReturn =
         data.role === ADMIN_ROLE &&

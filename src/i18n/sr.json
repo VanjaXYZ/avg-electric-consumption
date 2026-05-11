@@ -8,6 +8,13 @@
     "taxGroups": "Poreske grupe",
     "plans": "Planovi"
   },
+  "menu": {
+    "title": "Meni",
+    "description": "Navigacija aplikacije; temu i jezik podešavajte ispod.",
+    "systemSettings": "Sistemska podešavanja",
+    "guest": "Gost",
+    "userFallback": "Korisnik"
+  },
   "common": {
     "language": "Jezik",
     "theme": "Tema",

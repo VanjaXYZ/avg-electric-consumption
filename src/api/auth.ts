@@ -9,6 +9,7 @@ export type LoginResponseBody = {
   token: string
   expiresAt: string
   role: string
+  username: string
 }
 
 export async function login(body: LoginRequestBody) {

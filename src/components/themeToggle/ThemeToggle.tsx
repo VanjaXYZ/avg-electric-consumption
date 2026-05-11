@@ -1,14 +1,20 @@
 import { useTheme } from "next-themes"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { useTranslation } from "react-i18next"
 
-export function ThemeToggle() {
+import { cn } from "../../lib/utils"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+
+type Props = {
+  className?: string
+}
+
+export function ThemeToggle({ className }: Props) {
     const { theme, setTheme } = useTheme()
     const { t } = useTranslation()
 
     return (
         <Select value={theme ?? "system"} onValueChange={(v) => setTheme(v)}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className={cn("w-[140px] min-w-0", className)}>
                 <SelectValue placeholder={t("common.theme")} />
             </SelectTrigger>
             <SelectContent>

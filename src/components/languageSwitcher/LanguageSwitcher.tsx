@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useTranslation } from "react-i18next"
 import { STORAGE_KEY } from "../../i18n"
+import { cn } from "../../lib/utils"
 import {
     Select,
     SelectContent,
@@ -9,7 +10,11 @@ import {
     SelectValue,
 } from "../ui/select"
 
-export function LanguageSwitcher() {
+type Props = {
+    className?: string
+}
+
+export function LanguageSwitcher({ className }: Props) {
     const { i18n, t } = useTranslation()
     const [selectedLanguage, setSelectedLanguage] = useState(i18n.language)
 
@@ -21,7 +26,7 @@ export function LanguageSwitcher() {
 
     return (
         <Select value={selectedLanguage} onValueChange={handleLanguageChange}>
-            <SelectTrigger>
+            <SelectTrigger className={cn("min-w-0", className)}>
                 <SelectValue placeholder={t("common.language")} />
             </SelectTrigger>
             <SelectContent>
