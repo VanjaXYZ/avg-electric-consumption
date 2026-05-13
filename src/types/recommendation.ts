@@ -1,7 +1,10 @@
-
 export type Recommendation = {
-    kwh: number;
-    taxGroup: string;
+  kwh: number
+  taxGroup: string
+}
+
+export type RecommendationEmailRequest = Recommendation & {
+  toEmail: string
 }
 
 export type CostBreakdown = {

@@ -103,7 +103,6 @@ body {
   font-family: "Geist Variable", sans-serif;
 }
 
-/* Sonner (shadcn) toast styling */
 .cn-toast[data-type="success"],
 .cn-toast[data-sonner-toast][data-type="success"] {
   border-color: oklch(0.627 0.17 149 / 0.45);

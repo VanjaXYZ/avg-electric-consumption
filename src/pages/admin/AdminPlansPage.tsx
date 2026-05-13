@@ -90,7 +90,6 @@ export function AdminPlansPage() {
         if (p2 === "threshold") next.pricingTiers[p1].threshold = issue.message
         if (p2 === "pricePerKwh") next.pricingTiers[p1].pricePerKwh = issue.message
         if (typeof p2 === "undefined") {
-          // array-level error (e.g. min length). show it on first tier price field.
           next.pricingTiers[p1].pricePerKwh ??= issue.message
         }
       }

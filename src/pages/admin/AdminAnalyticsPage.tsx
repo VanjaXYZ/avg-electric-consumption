@@ -50,7 +50,6 @@ function normalizeTrendDate(iso: string): string {
   return iso.slice(0, 10)
 }
 
-/** Rows for Recharts: one row per day, columns `p_{planId}` for counts. */
 function pivotTrendsForLineChart(rows: PlanSelectionTrendRow[]) {
   const planIds = [...new Set(rows.map((r) => r.planId))].sort((a, b) => a - b)
   const planNames = new Map<number, string>()

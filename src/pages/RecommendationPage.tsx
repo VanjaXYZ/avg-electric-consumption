@@ -1,12 +1,15 @@
 import { useEffect, useMemo, useState } from "react"
 
-import { getRecommendation } from "../api/recommendation"
+import { getRecommendation, postRecommendationEmail } from "../api/recommendation"
 import { getTaxGroups } from "../api/tax-groups"
 import { getApiErrorMessage } from "../api/error"
 import { createCurrencyFormatter } from "../lib/format"
 import { RecommendationForm } from "../components/recommendation/RecommendationForm"
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert"
-import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card"
+import { Button } from "../components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card"
+import { Input } from "../components/ui/input"
+import { Label } from "../components/ui/label"
 import { Skeleton } from "../components/ui/skeleton"
 import {
   Table,
@@ -16,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/table"
-import type { RecommendationResponse } from "../types/recommendation"
+import type { Recommendation, RecommendationResponse } from "../types/recommendation"
 import type { TaxGroup } from "../types/tax-group"
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
@@ -28,6 +31,10 @@ export function RecommendationPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [result, setResult] = useState<RecommendationResponse | null>(null)
+  const [lastRecommendationParams, setLastRecommendationParams] =
+    useState<Recommendation | null>(null)
+  const [emailTo, setEmailTo] = useState("")
+  const [isSendingEmail, setIsSendingEmail] = useState(false)
   const [hasSubmitted, setHasSubmitted] = useState(false)
 
   const defaultTaxGroupName = useMemo(
@@ -86,6 +93,7 @@ export function RecommendationPage() {
           setIsSubmitting(true)
           try {
             const data = await getRecommendation(values)
+            setLastRecommendationParams(values)
             setResult(data)
             toast.success(t("recommendation.toastSuccess"))
           } catch (e) {
@@ -173,6 +181,60 @@ export function RecommendationPage() {
               </div>
             </CardContent>
           </Card>
+
+          {lastRecommendationParams ? (
+            <Card className="shadow-sm">
+              <CardHeader>
+                <CardTitle>{t("recommendation.emailCardTitle")}</CardTitle>
+                <CardDescription>{t("recommendation.emailCardDesc")}</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+                <div className="grid gap-2">
+                  <Label htmlFor="recommendation-email">{t("recommendation.emailLabel")}</Label>
+                  <Input
+                    id="recommendation-email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder={t("recommendation.emailPlaceholder")}
+                    value={emailTo}
+                    onChange={(e) => setEmailTo(e.target.value)}
+                    disabled={isSendingEmail}
+                  />
+                </div>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="sm:min-w-44"
+                  disabled={isSendingEmail}
+                  onClick={async () => {
+                    const to = emailTo.trim()
+                    if (!to) {
+                      toast.error(t("recommendation.emailRequired"))
+                      return
+                    }
+                    setIsSendingEmail(true)
+                    try {
+                      await postRecommendationEmail({
+                        ...lastRecommendationParams,
+                        toEmail: to,
+                      })
+                      toast.success(t("recommendation.emailSentToast"))
+                    } catch (e) {
+                      toast.error(
+                        getApiErrorMessage(e, t("recommendation.emailFailToast"))
+                      )
+                    } finally {
+                      setIsSendingEmail(false)
+                    }
+                  }}
+                >
+                  {isSendingEmail
+                    ? t("recommendation.emailSending")
+                    : t("recommendation.sendEmail")}
+                </Button>
+              </CardContent>
+            </Card>
+          ) : null}
 
           <Card className="shadow-sm">
             <CardHeader>

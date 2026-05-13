@@ -59,9 +59,6 @@ export function MenuBar() {
                                 <SheetTitle className="w-full truncate text-left text-base">
                                     {displayName ?? t("menu.guest")}
                                 </SheetTitle>
-                                {/* {isLoggedIn && authRole ? (
-                                    <Badge variant="secondary">{authRole}</Badge>
-                                ) : null} */}
                             </div>
                         </div>
                         <SheetDescription>{t("menu.description")}</SheetDescription>
